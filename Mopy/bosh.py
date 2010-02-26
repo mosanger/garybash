@@ -2526,27 +2526,6 @@ class MreClmt(MelRecord):
         MelStruct('TNAM','6B','riseBegin','riseEnd','setBegin','setEnd','volatility','phaseLength'),
         )
     __slots__ = MelRecord.__slots__ + melSet.getSlotsUsed()
-#------------------------------------------------------------------------------
-class MreClot(MelRecord):
-    """Clothing record."""
-    classType = 'CLOT'
-    _flags = MelBipedFlags(0L,Flags.getNames((16,'hideRings'),(17,'hideAmulet'),(22,'notPlayable')))
-    melSet = MelSet(
-        MelString('EDID','eid'),
-        MelString('FULL','full'),
-        MelFid('SCRI','script'),
-        MelFid('ENAM','enchantment'),
-        MelOptStruct('ANAM','H','enchantPoints'),
-        MelStruct('BMDT','I',(_flags,'flags',0L)),
-        MelModel('maleBody',0),
-        MelModel('maleWorld',2),
-        MelString('ICON','maleIconPath'),
-        MelModel('femaleBody',3),
-        MelModel('femaleWorld',4),
-        MelString('ICO2','femaleIconPath'),
-        MelStruct('DATA','If','value','weight'),
-        )
-    __slots__ = MelRecord.__slots__ + melSet.getSlotsUsed()
 
 #------------------------------------------------------------------------------
 class MreCont(MelRecord):
@@ -5055,7 +5034,7 @@ class MreProj(MelRecord):
 # MreRecord.type_class
 MreRecord.type_class = dict((x.classType,x) for x in (
     MreAchr, MreAcre, MreActi, MreAlch, MreAmmo, MreAnio, MreAppa, MreArmo, MreBook, MreBsgn,
-    MreCell, MreClas, MreClot, MreCont, MreCrea, MreDoor, MreEfsh, MreEnch, MreEyes, MreFact,
+    MreCell, MreClas, MreCont, MreCrea, MreDoor, MreEfsh, MreEnch, MreEyes, MreFact,
     MreFlor, MreFurn, MreGlob, MreGmst, MreGras, MreHair, MreIngr, MreKeym, MreLigh, MreLscr,
     MreLvlc, MreLvli, MreLvsp, MreMgef, MreMisc, MreNpc,  MrePack, MreQust, MreRace, MreRefr,
     MreRoad, MreScpt, MreSkil, MreSoun, MreSpel, MreStat, MreTree, MreTes4,
@@ -6799,7 +6778,7 @@ class SaveFile:
             insCopy(buff,size,2)
         insCopy(buff,4) #--Supposedly part of created info, but sticking it here since I don't decode it.
         self.preCreated = buff.getvalue()
-        #--Created (ALCH,SPEL,ENCH,WEAP,CLOTH,ARMO, etc.?)
+        #--Created (ALCH,SPEL,ENCH,WEAP,ARMO, etc.?)
         modReader = ModReader(self.fileInfo.name,ins)
         createdNum, = ins.unpack('I',4)
         for count in xrange(createdNum):
@@ -12372,7 +12351,7 @@ class FidReplacer:
 class FullNames:
     """Names for records, with functions for importing/exporting from/to mod/text file."""
     defaultTypes = set((
-        'ALCH', 'AMMO', 'APPA', 'ARMO', 'BOOK', 'BSGN', 'CLAS', 'CLOT', 'CONT', 'CREA', 'DOOR',
+        'ALCH', 'AMMO', 'APPA', 'ARMO', 'BOOK', 'BSGN', 'CLAS', 'CONT', 'CREA', 'DOOR',
         'EYES', 'FACT', 'FLOR', 'HAIR','INGR', 'KEYM', 'LIGH', 'MISC', 'NPC_', 'RACE', 'SPEL','WEAP',))
 
     def __init__(self,types=None,aliases=None):
@@ -12469,14 +12448,13 @@ class ItemStats:
         #--AMMO: (eid, weight, value, damage, speed, epoints)
         #--ARMO: (eid, weight, value, health, strength)
         #--WEAP: (eid, weight, value, health, damage, speed, reach, epoints)
-        self.type_stats = {'ALCH':{},'AMMO':{},'APPA':{},'ARMO':{},'BOOK':{},'CLOT':{},'INGR':{},'KEYM':{},'LIGH':{},'MISC':{},'WEAP':{}}
+        self.type_stats = {'ALCH':{},'AMMO':{},'APPA':{},'ARMO':{},'BOOK':{},'INGR':{},'KEYM':{},'LIGH':{},'MISC':{},'WEAP':{}}
         self.type_attrs = {
             'ALCH':('eid', 'weight', 'value'),
             'AMMO':('eid', 'value', 'speed', 'value', 'clipRounds'),
             'APPA':('eid', 'weight', 'value', 'quality'),
             'ARMO':('eid', 'weight', 'value', 'health', 'ar'),
             'BOOK':('eid', 'weight', 'value'),
-            'CLOT':('eid', 'weight', 'value', 'enchantPoints'),
             'INGR':('eid', 'weight', 'value'),
             'KEYM':('eid', 'weight', 'value'),
             'LIGH':('eid', 'weight', 'value', 'duration'),
@@ -12490,7 +12468,7 @@ class ItemStats:
 
     def readFromMod(self,modInfo):
         """Reads stats from specified mod."""
-        loadFactory= LoadFactory(False,MreAlch,MreAmmo,MreAppa,MreArmo,MreBook,MreClot,MreIngr,MreKeym,MreLigh,MreMisc,MreWeap)
+        loadFactory= LoadFactory(False,MreAlch,MreAmmo,MreAppa,MreArmo,MreBook,MreIngr,MreKeym,MreLigh,MreMisc,MreWeap)
         modFile = ModFile(modInfo,loadFactory)
         modFile.load(True)
         mapper = modFile.getLongMapper()
@@ -12503,7 +12481,7 @@ class ItemStats:
 
     def writeToMod(self,modInfo):
         """Writes stats to specified mod."""
-        loadFactory= LoadFactory(True,MreAlch,MreAmmo,MreAppa,MreArmo,MreBook,MreClot,MreIngr,MreKeym,MreLigh,MreMisc,MreWeap)
+        loadFactory= LoadFactory(True,MreAlch,MreAmmo,MreAppa,MreArmo,MreBook,MreIngr,MreKeym,MreLigh,MreMisc,MreWeap)
         modFile = ModFile(modInfo,loadFactory)
         modFile.load(True)
         mapper = modFile.getLongMapper()
@@ -12522,7 +12500,7 @@ class ItemStats:
 
     def readFromText(self,textPath):
         """Reads stats from specified text file."""
-        alch, ammo, appa, armor, books, clothing, ingredients, keys, lights, misc, weapons = [self.type_stats[type] for type in ('ALCH','AMMO','APPA','ARMO','BOOK','CLOT','INGR','KEYM','LIGH','MISC','WEAP')]
+        alch, ammo, appa, armor, books, ingredients, keys, lights, misc, weapons = [self.type_stats[type] for type in ('ALCH','AMMO','APPA','ARMO','BOOK','INGR','KEYM','LIGH','MISC','WEAP')]
         aliases = self.aliases
         ins = bolt.CsvReader(textPath)
         pack,unpack = struct.pack,struct.unpack
@@ -12546,10 +12524,6 @@ class ItemStats:
                     zip((sfloat,int,int,int),fields[4:8]))
             elif type == 'BOOK':
                books[longid] = (eid,) + tuple(func(field) for func,field in
-                    #--(weight, value, echantPoints)
-                    zip((sfloat,int,int,),fields[4:7]))
-            elif type == 'CLOT':
-                armor[longid] = (eid,) + tuple(func(field) for func,field in
                     #--(weight, value, echantPoints)
                     zip((sfloat,int,int,),fields[4:7]))
             elif type == 'INGR':
@@ -12597,10 +12571,6 @@ class ItemStats:
                 _('Editor Id'),_('Weight'),_('Value'),_('Health'),_('AR'))) + '"\n')),
             #Books
             ('BOOK', bolt.csvFormat('sfii')+'\n',
-                ('"' + '","'.join((_('Type'),_('Mod Name'),_('ObjectIndex'),
-                _('Editor Id'),_('Weight'),_('Value'),_('EPoints'))) + '"\n')),
-            #Clothing
-            ('CLOT', bolt.csvFormat('sfii')+'\n',
                 ('"' + '","'.join((_('Type'),_('Mod Name'),_('ObjectIndex'),
                 _('Editor Id'),_('Weight'),_('Value'),_('EPoints'))) + '"\n')),
             #Ingredients
@@ -13622,7 +13592,7 @@ class PatchFile(ModFile):
     #--Class
     mergeClasses = (
         MreActi, MreAlch, MreAmmo, MreAnio, MreAppa, MreArmo, MreBook, MreBsgn, MreClas,
-        MreClot, MreCont, MreCrea, MreDoor, MreEfsh, MreEnch, MreEyes, MreFact, MreFlor, MreFurn,
+        MreCont, MreCrea, MreDoor, MreEfsh, MreEnch, MreEyes, MreFact, MreFlor, MreFurn,
         MreGlob, MreGras, MreHair, MreIngr, MreKeym, MreLigh, MreLscr, MreLvlc, MreLvli,
         MreLvsp, MreMgef, MreMisc, MreNpc,  MrePack, MreQust, MreRace, MreScpt,
         MreSoun, MreSpel, MreStat, MreTree, MreWatr, MreWeap, MreWthr,
@@ -14413,7 +14383,7 @@ class GraphicsPatcher(ImportPatcher):
             recAttrs_class[recClass] = ('largeIconPath','smallIconPath','model')
         for recClass in (MreWeap,):
             recAttrs_class[recClass] = ('largeIconPath','smallIconPath','model','shellCasingModel','scopeModel','worldModel','firstPersonModel','animationType','gripAnimation','reloadAnimation')
-        for recClass in (MreArmo, MreClot):
+        for recClass in (MreArmo,):
             recAttrs_class[recClass] = ('maleBody','maleWorld','maleIconPath','maleIcon','femaleBody','femaleWorld','femaleIconPath','femaleIcon','flags')
         for recClass in (MreCrea,):
             recAttrs_class[recClass] = ('model','bodyParts','nift_p','bodyPartData','impactDataset')
@@ -14434,7 +14404,7 @@ class GraphicsPatcher(ImportPatcher):
         for recClass in (MreProj,):
             recAttrs_class[recClass] = ('model','light','muzzleFlash','explosion','muzzleFlashDuration','fadeDuration','muzzleFlashPath')
         #--Needs Longs
-        self.longTypes = set(('BSGN','LSCR','CLAS','LTEX','REGN','ACTI','DOOR','FLOR','FURN','GRAS','STAT','ALCH','AMMO','BOOK','INGR','KEYM','LIGH','MISC','WEAP','TREE','ARMO','CLOT','CREA','MGEF','EFSH','TXST','EXPL','IPCT','IPDS','PROJ'))
+        self.longTypes = set(('BSGN','LSCR','CLAS','LTEX','REGN','ACTI','DOOR','FLOR','FURN','GRAS','STAT','ALCH','AMMO','BOOK','INGR','KEYM','LIGH','MISC','WEAP','TREE','ARMO','CREA','MGEF','EFSH','TXST','EXPL','IPCT','IPDS','PROJ'))
 
     def initData(self,progress):
         """Get graphics from source files."""
@@ -14761,9 +14731,9 @@ class ImportScripts(ImportPatcher):
         self.isActive = len(self.sourceMods) != 0
         #--Type Fields
         recAttrs_class = self.recAttrs_class = {}
-        for recClass in (MreWeap,MreActi,MreAlch,MreAppa,MreArmo,MreBook,MreClot,MreCont,MreCrea,MreDoor,MreFlor,MreFurn,MreIngr,MreKeym,MreLigh,MreMisc,MreNpc,MreQust,):
+        for recClass in (MreWeap,MreActi,MreAlch,MreAppa,MreArmo,MreBook,MreCont,MreCrea,MreDoor,MreFlor,MreFurn,MreIngr,MreKeym,MreLigh,MreMisc,MreNpc,MreQust,):
             recAttrs_class[recClass] = ('script',)
-        self.longTypes = set(('WEAP','ACTI','ALCH','APPA','ARMO','BOOK','CLOT','CONT','CREA','DOOR','FLOR','FURN','INGR','KEYM','LIGH','MISC','NPC_','QUST'))
+        self.longTypes = set(('WEAP','ACTI','ALCH','APPA','ARMO','BOOK','CONT','CREA','DOOR','FLOR','FURN','INGR','KEYM','LIGH','MISC','NPC_','QUST'))
 
     def initData(self,progress):
         """Get graphics from source files."""
@@ -15717,7 +15687,7 @@ class StatsPatcher(ImportPatcher):
         log(_("\n=== Modified Stats"))
         for type,count,counts in allCounts:
             if not count: continue
-            typeName = {'ALCH':_('alch'),'AMMO':_('Ammo'),'ARMO':_('Armor'),'INGR':_('Ingr'),'MISC':_('Misc'),'WEAP':_('Weapons'),'LIGH':_('Lights'),'KEYM':_('Keys'),'CLOT':_('Clothes'),'BOOK':_('Books'),'APPA':_('Apparatus')}[type]
+            typeName = {'ALCH':_('alch'),'AMMO':_('Ammo'),'ARMO':_('Armor'),'INGR':_('Ingr'),'MISC':_('Misc'),'WEAP':_('Weapons'),'LIGH':_('Lights'),'KEYM':_('Keys'),'BOOK':_('Books'),'APPA':_('Apparatus')}[type]
             log("* %s: %d" % (typeName,count))
             for modName in sorted(counts):
                 log("  * %s: %d" % (modName.s,counts[modName]))
@@ -15881,52 +15851,6 @@ class AssortedTweak_ArmorShows(MultiTweakItem):
             log('  * %s: %d' % (srcMod.s,count[srcMod]))
 
 #------------------------------------------------------------------------------
-class AssortedTweak_ClothingShows(MultiTweakItem):
-    """Fix robes, gloves and the like to show amulets/rings."""
-
-    #--Config Phase -----------------------------------------------------------
-    def __init__(self,label,tip,key):
-        MultiTweakItem.__init__(self,label,tip,key)
-        self.hidesBit = {'ClothingShowsRings':16,'ClothingShowsAmulets':17}[key]
-
-    #--Patch Phase ------------------------------------------------------------
-    def getReadClasses(self):
-        """Returns load factory classes needed for reading."""
-        return (MreClot,)
-
-    def getWriteClasses(self):
-        """Returns load factory classes needed for writing."""
-        return (MreClot,)
-
-    def scanModFile(self,modFile,progress,patchFile):
-        """Scans specified mod file to extract info. May add record to patch mod,
-        but won't alter it."""
-        mapper = modFile.getLongMapper()
-        patchRecords = patchFile.CLOT
-        hidesBit = self.hidesBit
-        for record in modFile.CLOT.getActiveRecords():
-            if record.flags[hidesBit] and not record.flags.notPlayable:
-                record = record.getTypeCopy(mapper)
-                patchRecords.setRecord(record)
-
-    def buildPatch(self,log,progress,patchFile):
-        """Edits patch file as desired. Will write to log."""
-        count = {}
-        keep = patchFile.getKeeper()
-        hidesBit = self.hidesBit
-        for record in patchFile.CLOT.records:
-            if record.flags[hidesBit] and not record.flags.notPlayable:
-                record.flags[hidesBit] = False
-                keep(record.fid)
-                srcMod = record.fid[0]
-                count[srcMod] = count.get(srcMod,0) + 1
-        #--Log
-        log.setHeader('=== '+self.label)
-        log(_('* Clothing Pieces Tweaked: %d') % (sum(count.values()),))
-        for srcMod in modInfos.getOrdered(count.keys()):
-            log('  * %s: %d' % (srcMod.s,count[srcMod]))
-
-#------------------------------------------------------------------------------
 class AssortedTweak_BowReach(MultiTweakItem):
     """Fix bows to have reach = 1.0."""
 
@@ -15970,54 +15894,6 @@ class AssortedTweak_BowReach(MultiTweakItem):
         #--Log
         log.setHeader(_('=== Bow Reach Fix'))
         log(_('* Bows fixed: %d') % (sum(count.values()),))
-        for srcMod in modInfos.getOrdered(count.keys()):
-            log('  * %s: %d' % (srcMod.s,count[srcMod]))
-
-#------------------------------------------------------------------------------
-class AssortedTweak_ConsistentRings(MultiTweakItem):
-    """Sets rings to all work on same finger."""
-
-    #--Config Phase -----------------------------------------------------------
-    def __init__(self):
-        MultiTweakItem.__init__(self,_("Right Hand Rings"),
-            _('Fixes rings to unequip consistently by making them prefer the right hand.'),
-            'ConsistentRings',
-            ('1.0',  '1.0'),
-            )
-
-    #--Patch Phase ------------------------------------------------------------
-    def getReadClasses(self):
-        """Returns load factory classes needed for reading."""
-        return (MreClot,)
-
-    def getWriteClasses(self):
-        """Returns load factory classes needed for writing."""
-        return (MreClot,)
-
-    def scanModFile(self,modFile,progress,patchFile):
-        """Scans specified mod file to extract info. May add record to patch mod,
-        but won't alter it."""
-        mapper = modFile.getLongMapper()
-        patchRecords = patchFile.CLOT
-        for record in modFile.CLOT.getActiveRecords():
-            if record.flags.leftRing:
-                record = record.getTypeCopy(mapper)
-                patchRecords.setRecord(record)
-
-    def buildPatch(self,log,progress,patchFile):
-        """Edits patch file as desired. Will write to log."""
-        count = {}
-        keep = patchFile.getKeeper()
-        for record in patchFile.CLOT.records:
-            if record.flags.leftRing:
-                record.flags.leftRing = False
-                record.flags.rightRing = True
-                keep(record.fid)
-                srcMod = record.fid[0]
-                count[srcMod] = count.get(srcMod,0) + 1
-        #--Log
-        log.setHeader(_('=== Right Hand Rings'))
-        log(_('* Rings fixed: %d') % (sum(count.values()),))
         for srcMod in modInfos.getOrdered(count.keys()):
             log('  * %s: %d' % (srcMod.s,count[srcMod]))
 
@@ -16396,14 +16272,6 @@ class AssortedTweaker(MultiTweaker):
         #     _("Prevents armor from hiding rings."),
         #     'armorShowsRings',
         #     ),
-        # AssortedTweak_ClothingShows(_("Clothing Shows Amulets"),
-        #     _("Prevents Clothing from hiding amulets."),
-        #     'ClothingShowsAmulets',
-        #     ),
-        # AssortedTweak_ClothingShows(_("Clothing Shows Rings"),
-        #     _("Prevents Clothing from hiding rings."),
-        #     'ClothingShowsRings',
-        #     ),
         # AssortedTweak_BowReach(),
         # AssortedTweak_ConsistentRings(),
         # AssortedTweak_DarnBooks(),
@@ -16440,154 +16308,6 @@ class AssortedTweaker(MultiTweaker):
         log.setHeader('= '+self.__class__.name,True)
         for tweak in self.enabledTweaks:
             tweak.buildPatch(log,progress,self.patchFile)
-
-#------------------------------------------------------------------------------
-class ClothesTweak(MultiTweakItem):
-    flags = {
-        'hoods':   1<<1,
-        'shirts':  1<<2,
-        'pants':   1<<3,
-        'gloves':  1<<4,
-        'amulets': 1<<8,
-        'rings2':  1<<16,
-        'amulets2': 1<<17,
-        #--Multi
-        'robes':   (1<<2) + (1<<3),
-        'rings':   (1<<6) + (1<<7),
-        }
-
-    #--Config Phase -----------------------------------------------------------
-    def __init__(self,label,tip,key,*choices):
-        MultiTweakItem.__init__(self,label,tip,key,*choices)
-        typeKey = key[:key.find('.')]
-        self.orTypeFlags = typeKey == 'rings'
-        self.typeFlags = self.__class__.flags[typeKey]
-
-    def isMyType(self,record):
-        """Returns true to save record for late processing."""
-        if record.flags.notPlayable: return False #--Ignore non-playable items.
-        recTypeFlags = int(record.flags) & 0xFFFF
-        myTypeFlags = self.typeFlags
-        return (
-            (recTypeFlags == myTypeFlags) or
-            (self.orTypeFlags and (recTypeFlags & myTypeFlags == recTypeFlags))
-            )
-
-#------------------------------------------------------------------------------
-class ClothesTweak_MaxWeight(ClothesTweak):
-    """Enforce a max weight for specified clothes."""
-    #--Patch Phase ------------------------------------------------------------
-    def buildPatch(self,patchFile,keep,log):
-        """Build patch."""
-        tweakCount = 0
-        maxWeight = self.choiceValues[self.chosen][0]
-        superWeight = max(10,5*maxWeight) #--Guess is intentionally overweight
-        for record in patchFile.CLOT.records:
-            weight = record.weight
-            if self.isMyType(record) and weight > maxWeight and weight < superWeight:
-                record.weight = maxWeight
-                keep(record.fid)
-                tweakCount += 1
-        log('* %s: [%0.1f]: %d' % (self.label,maxWeight,tweakCount))
-
-#------------------------------------------------------------------------------
-class ClothesTweak_Unblock(ClothesTweak):
-    """Unlimited rings, amulets."""
-    #--Config Phase -----------------------------------------------------------
-    def __init__(self,label,tip,key,*choices):
-        ClothesTweak.__init__(self,label,tip,key,*choices)
-        self.unblockFlags = self.__class__.flags[key[key.rfind('.')+1:]]
-
-    #--Patch Phase ------------------------------------------------------------
-    def buildPatch(self,patchFile,keep,log):
-        """Build patch."""
-        tweakCount = 0
-        for record in patchFile.CLOT.records:
-            if self.isMyType(record) and int(record.flags & self.unblockFlags):
-                record.flags &= ~self.unblockFlags
-                keep(record.fid)
-                tweakCount += 1
-        log('* %s: %d' % (self.label,tweakCount))
-
-#------------------------------------------------------------------------------
-class ClothesTweaker(MultiTweaker):
-    """Patches clothes in miscellaneous ways."""
-    scanOrder = 31
-    editOrder = 31
-    name = _('Tweak Clothes')
-    text = _("Tweak clothing weight and blocking.")
-    tweaks = sorted([
-        # ClothesTweak_Unblock(_("Unlimited Amulets"),
-        #     _("Wear unlimited number of amulets - but they won't display."),
-        #     'amulets.unblock.amulets'),
-        # ClothesTweak_Unblock(_("Unlimited Rings"),
-        #     _("Wear unlimited number of rings - but they won't display."),
-        #     'rings.unblock.rings'),
-        # ClothesTweak_Unblock(_("Gloves Show Rings"),
-        #     _("Gloves will always show rings. (Conflicts with Unlimited Rings.)"),
-        #     'gloves.unblock.rings2'),
-        # ClothesTweak_Unblock(_("Robes Show Pants"),
-        #     _("Robes will allow pants, greaves, skirts - but they'll clip."),
-        #     'robes.unblock.pants'),
-        # ClothesTweak_Unblock(_("Robes Show Amulets"),
-        #     _("Robes will always show amulets. (Conflicts with Unlimited Amulets.)"),
-        #     'robes.show.amulets2'),
-        # ClothesTweak_MaxWeight(_("Max Weight Amulets"),
-        #     _("Amulet weight will be capped."),
-        #     'amulets.maxWeight',
-        #     (_('0.0'),0),
-        #     (_('0.1'),0.1),
-        #     (_('0.2'),0.2),
-        #     (_('0.5'),0.5),
-        #     ),
-        # ClothesTweak_MaxWeight(_("Max Weight Rings"),
-        #     _('Ring weight will be capped.'),
-        #     'rings.maxWeight',
-        #     (_('0.0'),0),
-        #     (_('0.1'),0.1),
-        #     (_('0.2'),0.2),
-        #     (_('0.5'),0.5),
-        #     ),
-        # ClothesTweak_MaxWeight(_("Max Weight Hoods"),
-        #     _('Hood weight will be capped.'),
-        #     'hoods.maxWeight',
-        #     (_('0.2'),0.2),
-        #     (_('0.5'),0.5),
-        #     (_('1.0'),1.0),
-        #     ),
-        ],key=lambda a: a.label.lower())
-
-    #--Patch Phase ------------------------------------------------------------
-    def getReadClasses(self):
-        """Returns load factory classes needed for reading."""
-        return (None,(MreClot,))[self.isActive]
-
-    def getWriteClasses(self):
-        """Returns load factory classes needed for writing."""
-        return (None,(MreClot,))[self.isActive]
-
-    def scanModFile(self,modFile,progress):
-        """Scans specified mod file to extract info. May add record to patch mod,
-        but won't alter it."""
-        if not self.isActive or 'CLOT' not in modFile.tops: return
-        mapper = modFile.getLongMapper()
-        patchRecords = self.patchFile.CLOT
-        id_records = patchRecords.id_records
-        for record in modFile.CLOT.getActiveRecords():
-            if mapper(record.fid) in id_records: continue
-            for tweak in self.enabledTweaks:
-                if tweak.isMyType(record):
-                    record = record.getTypeCopy(mapper)
-                    patchRecords.setRecord(record)
-                    break
-
-    def buildPatch(self,log,progress):
-        """Applies individual clothes tweaks."""
-        if not self.isActive: return
-        keep = self.patchFile.getKeeper()
-        log.setHeader('= '+self.__class__.name)
-        for tweak in self.enabledTweaks:
-            tweak.buildPatch(self.patchFile,keep,log)
 
 #------------------------------------------------------------------------------
 class GmstTweak(MultiTweakItem):
@@ -17433,12 +17153,6 @@ class NamesTweaker(MultiTweaker):
         #     (_('BL02. Leather Boots'), '%s%02d. '),
         #     (_('BL02 - Leather Boots'),'%s%02d - '),
         #     (_('(BL02) Leather Boots'),'(%s%02d) '),
-        #     ),
-        # NamesTweak_Body(_("Clothes"),_("Rename clothes to sort by type."),'CLOT',
-        #     (_('P Grey Trowsers'),  '%s '),
-        #     (_('P. Grey Trowsers'), '%s. '),
-        #     (_('P - Grey Trowsers'),'%s - '),
-        #     (_('(P) Grey Trowsers'),'(%s) '),
         #     ),
         # NamesTweak_Potions(),
         # NamesTweak_Scrolls(),
@@ -18734,7 +18448,7 @@ class ContentsChecker(SpecialPatcher,Patcher):
             'LVLC':'LVLC,CREA,'.split(','),
             'LVLN':'LVLC,NPC_,'.split(','),
             #--LVLI will also be applied for containers.
-            'LVLI':'LVLI,ALCH,AMMO,APPA,ARMO,BOOK,CLOT,INGR,KEYM,LIGH,MISC,WEAP'.split(','),
+            'LVLI':'LVLI,ALCH,AMMO,APPA,ARMO,BOOK,INGR,KEYM,LIGH,MISC,WEAP'.split(','),
             }
         self.contType_entryTypes['CONT'] = self.contType_entryTypes['LVLI']
         self.contType_entryTypes['CREA'] = self.contType_entryTypes['LVLI']

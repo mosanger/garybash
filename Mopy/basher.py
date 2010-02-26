@@ -4430,8 +4430,6 @@ class ImportSpells(bosh.SpellsPatcher,ListPatcher):pass
 # Patchers 30 ------------------------------------------------------------------
 class AssortedTweaker(bosh.AssortedTweaker,TweakPatcher): pass
 
-class ClothesTweaker(bosh.ClothesTweaker,TweakPatcher): pass
-
 class GmstTweaker(bosh.GmstTweaker,TweakPatcher): pass
 
 class NamesTweaker(bosh.NamesTweaker,TweakPatcher): pass
@@ -4467,7 +4465,7 @@ PatchDialog.patchers.extend((
     #AlchemicalCatalogs(),
     #CoblExhaustion(),
     CellImporter(),
-    ClothesTweaker(),
+    #ClothesTweaker(),
     GmstTweaker(),
     GraphicsPatcher(),
     ImportFactions(),
@@ -8242,15 +8240,12 @@ class Save_EditCreatedData(balt.ListEditorData):
         buff = cStringIO.StringIO()
         name,records = self.data[item]
         record = records[0]
-        #--Armor, clothing, weapons
+        #--Armor, weapons
         if record.recType == 'ARMO':
             buff.write(_('Armor\nFlags: '))
             buff.write(', '.join(record.flags.getTrueAttrs())+'\n')
             for attr in ('strength','value','weight'):
                 buff.write('%s: %s\n' % (attr,getattr(record,attr)))
-        elif record.recType == 'CLOT':
-            buff.write(_('Clothing\nFlags: '))
-            buff.write(', '.join(record.flags.getTrueAttrs())+'\n')
         elif record.recType == 'WEAP':
             buff.write(bush.weaponTypes[record.weaponType]+'\n')
             for attr in ('damage','value','speed','reach','weight'):
@@ -8302,7 +8297,7 @@ class Save_EditCreatedData(balt.ListEditorData):
 class Save_EditCreated(Link):
     """Allows user to rename custom items (spells, enchantments, etc."""
     menuNames = {'ENCH':_('Rename Enchanted...'),'SPEL':_('Rename Spells...'),'ALCH':_('Rename Potions...')}
-    recordTypes = {'ENCH':('ARMO','CLOT','WEAP')}
+    recordTypes = {'ENCH':('ARMO','WEAP')}
 
     def __init__(self,type):
         if type not in Save_EditCreated.menuNames:
