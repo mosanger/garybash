@@ -7777,7 +7777,7 @@ class Mods_BossMasterList(Link):
         Link.AppendToMenu(self,menu,window,data)
         menuItem = wx.MenuItem(menu,self.id,_('masterlist.txt...'))
         menu.AppendItem(menuItem)
-        self.path = bosh.dirs['mods'].join('masterlist.txt')
+        self.path = bosh.dirs['mods'].join('BOSS\\masterlist.txt')
         menuItem.Enable(self.path.exists())
 
     def Execute(self,event):
@@ -11358,7 +11358,7 @@ def InitStatusBar():
 #            _("Launch Tes4LODGen")))
     BashStatusBar.buttons.append( #BOSS
         App_BOSS(
-            bosh.dirs['app'].join('Data\\BOSS-F.bat'),
+            bosh.dirs['app'].join('Data\\BOSS-F.exe'),
             Image(r'images/Boss'+bosh.inisettings['iconSize']+'.png'),
             _("Launch BOSS")))
     if bosh.inisettings['showmodelingtoollaunchers']:
