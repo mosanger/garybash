@@ -7775,12 +7775,12 @@ class Mods_LockTimes(Link):
 
 #------------------------------------------------------------------------------
 class Mods_BossMasterList(Link):
-    """Open Data/masterlist.txt."""
+    """Open Data/BOSS/masterlist.txt."""
     def AppendToMenu(self,menu,window,data):
         Link.AppendToMenu(self,menu,window,data)
         menuItem = wx.MenuItem(menu,self.id,_('masterlist.txt...'))
         menu.AppendItem(menuItem)
-        self.path = bosh.dirs['mods'].join('masterlist.txt')
+        self.path = bosh.dirs['mods'].join('BOSS','masterlist.txt')
         menuItem.Enable(self.path.exists())
 
     def Execute(self,event):
