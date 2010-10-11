@@ -20701,6 +20701,7 @@ class NamesTweak_SortInventory(MultiTweakItem):
             _('Sort item by category in barter and container screens.'),
             'sortInventory',
             # weapon,armor,stimpak,chem,food/drink,ammo
+            (_('Chem>Weapon>Armor>Food>Ammo>Misc'),4,3,6,5,1,2),
             (_('Chem>Ammo>Weapon>Armor>Food>Misc'),3,2,6,5,1,4),
             (_('Chem>Weapon>Armor>Food>Ammo>Misc'),4,3,6,5,2,1),
             (_('Ammo>Chem>Weapon>Armor>Food>Misc'),3,2,5,4,1,6),
