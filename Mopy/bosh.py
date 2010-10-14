@@ -13794,9 +13794,11 @@ class FidReplacer:
 class FullNames:
     """Names for records, with functions for importing/exporting from/to mod/text file."""
     defaultTypes = set((
-        'ALCH', 'AMMO', 'APPA', 'ARMO', 'BOOK', 'BSGN', 'CLAS', 'CLOT', 'CONT', 'CREA', 'DOOR',
-        'EYES', 'FACT', 'FLOR', 'HAIR','INGR', 'KEYM', 'LIGH', 'MISC', 'NPC_', 'RACE', 'SGST',
-        'SLGM', 'SPEL','WEAP',))
+        'ALCH', 'AMMO', 'APPA', 'ARMO', 'BOOK', 'CLAS', 'CLOT', 'CONT', 'CREA', 'DOOR',
+        'EYES', 'FACT', 'FLOR', 'HAIR', 'INGR', 'KEYM', 'LIGH', 'MISC', 'NOTE', 'NPC_',
+        'RACE', 'SPEL', 'TERM', 'WEAP',))
+    hasShortNameTypes = set((
+        'AMMO', 'AVIF', ))
 
     def __init__(self,types=None,aliases=None):
         """Initialize."""
@@ -13810,6 +13812,7 @@ class FullNames:
         ###Remove from Bash after CBash integrated
         if(CBash == None):
             type_id_name,types = self.type_id_name, self.types
+            type_id_sname = self.type_id_sname
             classes = [MreRecord.type_class[x] for x in self.types]
             loadFactory= LoadFactory(False,*classes)
             modFile = ModFile(modInfo,loadFactory)
@@ -13819,19 +13822,24 @@ class FullNames:
                 typeBlock = modFile.tops.get(type,None)
                 if not typeBlock: continue
                 if type not in type_id_name: type_id_name[type] = {}
+                if type not in type_id_sname: type_id_sname[type] = {}
                 id_name = type_id_name[type]
+                id_sname = type_id_sname[type]
                 for record in typeBlock.getActiveRecords():
                     longid = mapper(record.fid)
                     full = record.full or (type != 'LIGH' and 'NO NAME')
                     if record.eid and full:
                         id_name[longid] = (record.eid,full)
+                    if(hasattr(record, 'shortName')):
+                        sname = record.shortName
+                        if record.eid and sname:
+                            id_sname[longid] = (record.eid,sname)
         else:
             type_id_name = self.type_id_name
             type_id_sname = self.type_id_sname
             Current = Collection(ModsPath=dirs['mods'].s)
             modFile = Current.addMod(modInfo.name.s)
             Current.minimalLoad(LoadMasters=False)
-            
             mapper = modFile.MakeLongFid
             for type,block in modFile.aggregates.iteritems():
                 if type not in type_id_name: type_id_name[type] = {}
@@ -13857,6 +13865,7 @@ class FullNames:
         ###Remove from Bash after CBash integrated
         if(CBash == None):
             type_id_name,types = self.type_id_name,self.types
+            type_id_sname = self.type_id_sname
             classes = [MreRecord.type_class[x] for x in self.types]
             loadFactory= LoadFactory(True,*classes)
             modFile = ModFile(modInfo,loadFactory)
@@ -13865,36 +13874,51 @@ class FullNames:
             changed = {}
             for type in types:
                 id_name = type_id_name.get(type,None)
+                id_sname = type_id_sname.get(type,None)
                 typeBlock = modFile.tops.get(type,None)
                 if not id_name or not typeBlock: continue
                 for record in typeBlock.records:
                     longid = mapper(record.fid)
                     full = record.full
+                    sname = record.shortName if (hasattr(record, 'shortName')) else None
                     eid,newFull = id_name.get(longid,(0,0))
+                    eid2,newSname = id_sname.get(longid,(0,0))
                     if newFull and newFull not in (full,'NO NAME'):
                         record.full = newFull
                         record.setChanged()
                         changed[eid] = (full,newFull)
+                    if newSname and newSname not in (sname,'NO NAME'):
+                        record.shortName = newSname
+                        record.setChanged()
+                        if not changed.has_key(eid):
+                            changed[eid] = (sname,newSname)
             if changed: modFile.safeSave()
             return changed
         else:
             type_id_name = self.type_id_name
+            type_id_sname = self.type_id_sname
             Current = Collection(ModsPath=dirs['mods'].s)
             modFile = Current.addMod(modInfo.name.s)
             Current.fullLoad(LoadMasters=False)
-            
             mapper = modFile.MakeLongFid
             changed = {}
             for type,block in modFile.aggregates.iteritems():
                 id_name = type_id_name.get(type,None)
+                id_sname = type_id_sname.get(type,None)
                 if not id_name: continue
                 for record in block:
                     longid = record.longFid
                     full = record.full
+                    sname = record.shortName if (hasattr(record, 'shortName')) else None
                     eid,newFull = id_name.get(longid,(0,0))
+                    eid2,newSname = id_sname.get(longid,(0,0))
                     if newFull and newFull not in (full,'NO NAME'):
                         record.full = newFull
                         changed[eid] = (full,newFull)
+                    if newSname and newSname not in (sname,'NO NAME'):
+                        record.shortName = newSname
+                        if not changed.has_key(eid):
+                            changed[eid] = (sname,newSname)
             if changed: modFile.safeCloseSave()
             return changed
 
@@ -13908,7 +13932,7 @@ class FullNames:
         for fields in ins:
             if len(fields) < 5 or fields[2][:2] != '0x': continue
             type,mod,objectIndex,eid,full = fields[:5]
-            sname = fields[5] if len(fields) > 5 else None
+            sname = fields[5] if type in self.hasShortNameTypes else None
             mod = GPath(mod)
             longid = (aliases.get(mod,mod),int(objectIndex[2:],16))
             if type in type_id_name:
@@ -13925,18 +13949,29 @@ class FullNames:
         """Exports type_id_name to specified text file."""
         textPath = GPath(textPath)
         type_id_name = self.type_id_name
-        headFormat = '"%s","%s","%s","%s","%s"\n'
-        rowFormat = '"%s","%s","0x%06X","%s","%s"\n'
+        type_id_sname = self.type_id_sname
         out = textPath.open('w')
-        out.write(headFormat % (_('Type'),_('Mod Name'),_('ObjectIndex'),_('Editor Id'),_('Name')))
         for type in sorted(type_id_name):
+            if type in self.hasShortNameTypes:
+                headFormat = '"%s","%s","%s","%s","%s","%s"\n'
+                rowFormat = '"%s","%s","0x%06X","%s","%s","%s"\n'
+                out.write(headFormat % (_('Type'),_('Mod Name'),_('ObjectIndex'),_('Editor Id'),_('Name'),_('Short Name')))
+            else:
+                headFormat = '"%s","%s","%s","%s","%s"\n'
+                rowFormat = '"%s","%s","0x%06X","%s","%s"\n'
+                out.write(headFormat % (_('Type'),_('Mod Name'),_('ObjectIndex'),_('Editor Id'),_('Name')))
             id_name = type_id_name[type]
+            id_sname = type_id_sname.get(type, {})
             longids = id_name.keys()
             longids.sort(key=lambda a: id_name[a][0])
             longids.sort(key=itemgetter(0))
             for longid in longids:
                 eid,name = id_name[longid]
-                out.write(rowFormat % (type,longid[0].s,longid[1],eid,name))
+                if type in self.hasShortNameTypes:
+                    eid2,sname = id_sname.get(longid,(eid,''))
+                    out.write(rowFormat % (type,longid[0].s,longid[1],eid,name.replace('"', '""'),sname.replace('"', '""')))
+                else:
+                    out.write(rowFormat % (type,longid[0].s,longid[1],eid,name.replace('"', '""')))
         out.close()
 #------------------------------------------------------------------------------
 class SigilStoneDetails:
